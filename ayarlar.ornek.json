@@ -1,0 +1,23 @@
+{
+  "aktif_kanal": "KANAL1",
+  "kanallar": {
+    "KANAL1": {
+      "kanal": "Persona",
+      "ana_klasor": "~/Desktop/Persona",
+      "claude_proje_url": "",
+      "avatar_referans": "",
+      "heygen": {
+        "avatar": "",
+        "ses": "",
+        "motion_engine": "Avatar III"
+      },
+      "stok_konu_kelimeleri": [],
+      "stok_yasak_kelimeler": [],
+      "stok_yedek_sorgular": [],
+      "stok_esanlam": {},
+      "max_yedek_gorsel": 60
+    }
+  },
+  "pixabay_api_key": "",
+  "pexels_api_key": ""
+}

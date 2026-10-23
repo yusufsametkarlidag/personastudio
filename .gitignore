@@ -1,0 +1,12 @@
+# kisisel ayarlar ve API anahtarlari
+ayarlar.json
+*.yedek
+_yedek_*/
+
+# python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+*.yedek*
