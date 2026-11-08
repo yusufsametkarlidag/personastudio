@@ -36,10 +36,15 @@ VEO_CLIP_LEN = 8.0
 MAX_VEO = 12
 
 GORSEL_INTRO = (
-    "Aşağıdaki görsel promptlarını 10'arlı partlar halinde oluştur; her partı bitirince onayımı bekle. "
+    "Aşağıdaki görsel promptlarını 20'şerli partlar halinde oluştur. "
+    "HER PARTTAN SONRA DUR: 20 görseli bitirince bir sonraki parta geçme, onayımı bekle. "
+    "Ben \"devam\" dediğimde sıradaki 20'yi üret. "
     "Her görsel 16:9, fotogerçekçi ve tamamen doğal olacak; üzerinde yazı/logo olmayacak. "
-    "Her görselin adı MUTLAKA listedeki numarayla \"Görsel #numara\" olacak (ör. Görsel #17); "
-    "numaralar ardışık değil, listedeki numarayı aynen kullan. Açıklayıcı başka bir ad verme."
+    "TEK TEK üret: her görsel ayrı tek kare olacak, yan yana panel/diptik/kolaj yapma. "
+    "İSİMLENDİRME EN ÖNEMLİ KURAL: her görselin adı MUTLAKA listedeki numarayla "
+    "\"Görsel #numara\" olacak (ör. Görsel #17). Numaralar ardışık değil, listedeki numarayı "
+    "aynen kullan. Açıklayıcı ad verme, numarayı atlama, adı değiştirme; yanlış isimlendirilen "
+    "görsel kullanılamıyor."
 )
 VIDEO_INTRO = (
     "Aşağıdaki video promptlarının her birini doğrudan text-to-video olarak oluştur (önce görsel üretme). "

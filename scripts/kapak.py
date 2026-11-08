@@ -58,6 +58,27 @@ STILLER = {
         "alt_cizgi": KART_KIRMIZI,
         "koyultma": 175,
     },
+    # Yemek kanali: rakiplerin (Aldo vb.) kapak dili. Daha iri yazi, kalin siyah kontur,
+    # kirmizi kutuda beyaz etiket ve yazidan yemege inen kirmizi kavisli ok.
+    "mutfak": {
+        "vurgu": YELLOW,
+        "etiket_zemin": KART_KIRMIZI,
+        "etiket_yazi": WHITE,
+        "egim": 3,
+        "yatiklik": 0.0,
+        "doygunluk": 1.18,
+        "alt_cizgi": None,
+        "koyultma": 165,
+        "yazi_genislik": 0.36,   # blok sag kenara dayanmasin, pay kalsin
+        "yazi_boy": 190,         # baslangic punto
+        "kontur": 14,            # harf konturu kalinligi
+        "etiket_boy": 52,
+        "etiket_kontur": 6,
+        "yazi_x": 0.52,
+        "etiket_ek": 26,   # kontur + kutu cercevesi payi
+        # "ok": kullanici oku kendi ekliyor; acmak icin asagidaki satiri geri al
+        # "ok": (0.565, 0.445, 0.500, 0.466, 0.455, 0.555),
+    },
 }
 
 TEXT_LEFT = int(W * 0.40)     # yazi blogu bu x'ten saga
@@ -120,7 +141,9 @@ def bezier(p0, p1, p2, n=40):
 def draw_arrow(d: ImageDraw.ImageDraw, start, ctrl, end, width=17, color=RED, head=(58, 36)):
     pts = bezier(start, ctrl, end)
     shaft = pts[:-5]
-    d.line(shaft, fill=BLACK, width=width + 8, joint="curve")
+    # kontur kalinligi gövdeyle orantili olmali: sabit piksel, olceklenmis cizimde kayboluyor
+    o = max(3, width // 5)
+    d.line(shaft, fill=BLACK, width=width + 2 * o, joint="curve")
     d.line(shaft, fill=color, width=width, joint="curve")
     # ok basi
     (x1, y1), (x2, y2) = pts[-6], pts[-1]
@@ -130,7 +153,7 @@ def draw_arrow(d: ImageDraw.ImageDraw, start, ctrl, end, width=17, color=RED, he
     tip = (x2, y2)
     left = (x2 - L * math.cos(ang) + S * math.sin(ang), y2 - L * math.sin(ang) - S * math.cos(ang))
     right = (x2 - L * math.cos(ang) - S * math.sin(ang), y2 - L * math.sin(ang) + S * math.cos(ang))
-    d.polygon([tip, left, right], fill=color, outline=BLACK, width=4)
+    d.polygon([tip, left, right], fill=color, outline=BLACK, width=o)
 
 
 FUTURA = "/System/Library/Fonts/Supplemental/Futura.ttc"      # index 4: Condensed ExtraBold
@@ -171,30 +194,36 @@ def compose(base_path: Path, y1: str, y2: str, out_path: Path, stil: dict = None
     words = y1.split()
     dx, dy, olcek = (ayar or {}).get("dx", 0), (ayar or {}).get("dy", 0), (ayar or {}).get("olcek", 1.0)
     line1, line2 = (words[0], " ".join(words[1:])) if len(words) > 1 else (y1, "")
-    max_w = W * 0.38 * olcek
-    size = int(150 * olcek)
-    while size > 70:
+    x0_on = W * s.get("yazi_x", 0.60) + (ayar or {}).get("dx", 0)
+    max_w = min(W * s.get("yazi_genislik", 0.38) * olcek, TEXT_RIGHT - x0_on)
+    size = int(s.get("yazi_boy", 150) * olcek)
+    while size > 60:
         f = _font(FUTURA, size, 4)
         if max(f.getlength(line1), f.getlength(line2 or line1)) <= max_w:
             break
         size -= 6
-    x0, y0 = W * 0.60 + dx, 10 + dy
+    x0, y0 = x0_on, 10 + dy
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     ld = ImageDraw.Draw(layer)
-    ld.text((x0, y0), line1, font=f, fill=WHITE, stroke_width=9, stroke_fill=BLACK)
+    kont = s.get("kontur", 9)
+    ld.text((x0, y0), line1, font=f, fill=WHITE, stroke_width=kont, stroke_fill=BLACK)
     y = y0 + f.size * 0.92
     if line2:
-        ld.text((x0, y), line2, font=f, fill=s["vurgu"], stroke_width=9, stroke_fill=BLACK)
-        y += f.size * 1.03
+        ld.text((x0, y), line2, font=f, fill=s["vurgu"], stroke_width=kont, stroke_fill=BLACK)
+        y += f.size * 1.03 + s.get("etiket_ek", 0)
     else:
         y += f.size * 0.11
-    tsize = 44
+    tsize = s.get("etiket_boy", 44)
     while tsize > 26:
         ft = _font(AVENIR, tsize, 8)
         if ft.getlength(y2) + 28 <= W - x0 - 20:
             break
         tsize -= 2
-    ld.rectangle((x0, y, x0 + ft.getlength(y2) + 28, y + tsize * 1.32), fill=s["etiket_zemin"])
+    ek = s.get("etiket_kontur", 0)
+    kutu = (x0, y, x0 + ft.getlength(y2) + 28, y + tsize * 1.32)
+    if ek:
+        ld.rectangle((kutu[0] - ek, kutu[1] - ek, kutu[2] + ek, kutu[3] + ek), fill=BLACK)
+    ld.rectangle(kutu, fill=s["etiket_zemin"])
     ld.text((x0 + 14, y + tsize * 0.05), y2, font=ft, fill=s["etiket_yazi"])
     if s["alt_cizgi"]:
         kalin = max(8, int(f.size * 0.085))
@@ -214,6 +243,16 @@ def compose(base_path: Path, y1: str, y2: str, out_path: Path, stil: dict = None
     out = img.convert("RGBA")
     out.alpha_composite(shadow, (8, 10))
     out.alpha_composite(layer)
+    if s.get("ok"):
+        ox = s["ok"]
+        # PIL cizgi/coken cizimi kenar yumusatmaz; 4 kat buyuk cizip kucultuyoruz.
+        SS = 4
+        ok_kat = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
+        draw_arrow(ImageDraw.Draw(ok_kat),
+                   (W * ox[0] * SS, H * ox[1] * SS), (W * ox[2] * SS, H * ox[3] * SS),
+                   (W * ox[4] * SS, H * ox[5] * SS),
+                   width=20 * SS, color=KART_KIRMIZI, head=(46 * SS, 29 * SS))
+        out.alpha_composite(ok_kat.resize((W, H), Image.LANCZOS))
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out.convert("RGB").save(out_path, "JPEG", quality=92, optimize=True)
     return out_path
